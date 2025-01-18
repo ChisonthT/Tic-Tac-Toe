@@ -93,11 +93,4 @@ const gameController = (() => {
     }else{
         console.log("It's a draw!");
     }
-})
-
-const displayController = (() => {
-
 })();
-
-
-gameController();
