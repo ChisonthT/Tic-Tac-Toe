@@ -1,3 +1,6 @@
+const createPlayer = (name, marker) => {
+    return {name, marker};
+}
 
 const gameBoard = (() => {
     let defaultMarker = " ";
@@ -5,93 +8,93 @@ const gameBoard = (() => {
                 defaultMarker, defaultMarker, defaultMarker, 
                 defaultMarker, defaultMarker, defaultMarker];
 
-    const getBoard = () => {
-        let formated = board[0] +"|"+ board[1] +"|"+ board[2] + "\n" 
-                    + board[3] +"|"+ board[4] +"|"+ board[5] + "\n" 
-                    + board[6] +"|"+ board[7] +"|"+ board[8];
-        return formated;
-    };
+    const inputfield = document.getElementById("playerX");
+    const inputfield2 = document.getElementById("playerO");
+
+    let player1 = createPlayer(inputfield.value, "X");
+    let player2 = createPlayer(inputfield2.value,"O");
+
+    let turn = player1;
+
+    const playboard = document.getElementById("board");
+    playboard.addEventListener("click", (event) => {
+        if (event.target.tagName === "BUTTON"){
+            const position = event.target.id;
+            gameBoard.gameController(turn.marker, position);
+        }
+    });
 
     const placeMarker = (marker,position) => {
-        if ((marker === "X" || marker === "O") && position >= 0 && position <= 8 && board[position] === defaultMarker) {
+        if (position >= 0 && position <= 8 && board[position] === defaultMarker) {
+            
             board[position] = marker;
+            const button= document.getElementById(position);
+            button.textContent = marker;
+            
+            if (turn === player1){
+                turn = player2;
+            }else{
+                turn = player1;
+            }
+            
             return true;
         } else{
             return false;
         }
     }
 
-
-    const checkWin = () =>{
+    //Checks if we can end the game. Wether we have a winner or if the board is full.
+    const checkWin = (currentMarker) =>{
         let symbol;
-
-        if (board[0] === board[1] && board[0] === board[2] && board[0] !== defaultMarker){
-            symbol = board[0];
-        }else if (board[3] === board[4] && board[3] === board[5] && board[3] !== defaultMarker){
-            symbol = board[3];
-        }else if (board[6] === board[7] && board[6] === board[8] && board[6] !== defaultMarker){
-            symbol = board[6];
-        }else if (board[0] === board[3] && board[0] === board[6] && board[0] !== defaultMarker){
-            symbol = board[0];
-        }else if (board[1] === board[4] && board[1] === board[7] && board[1] !== defaultMarker){
-            symbol = board[1];
-        }else if (board[2] === board[5] && board[2] === board[8] && board[2] !== defaultMarker){
-            symbol = board[2];
-        }else if (board[0] === board[4] && board[0] === board[8] && board[0] !== defaultMarker){
-            symbol = board[0];
-        } else if (board[2] === board[4] && board[2] === board[6] && board[2] !== defaultMarker) {
-            symbol = board[2];
+        if ((board[0] === board[1] && board[0] === board[2] && board[0] === currentMarker) || 
+        (board[3] === board[4] && board[3] === board[5] && board[3] === currentMarker) ||
+        (board[6] === board[7] && board[6] === board[8] && board[6] === currentMarker) ||
+        (board[0] === board[3] && board[0] === board[6] && board[0] === currentMarker) ||
+        (board[1] === board[4] && board[1] === board[7] && board[1] === currentMarker) ||
+        (board[2] === board[5] && board[2] === board[8] && board[2] === currentMarker) || 
+        (board[0] === board[4] && board[0] === board[8] && board[0] === currentMarker) ||
+        (board[2] === board[4] && board[2] === board[6] && board[2] === currentMarker)) {
+            symbol = true;
         }else{
-            symbol = defaultMarker;
+            symbol = false;
         }
 
         return symbol;
+    }
+
+    const checkTie = () => {
+        let tie = true;
+        for (let i = 0; i < board.length; i++){
+            if (board[i] === " "){
+                tie = false;
+            }
+        }
+        return tie;
     }
 
     const resetBoard = () => {
         board = [defaultMarker, defaultMarker, defaultMarker, 
             defaultMarker, defaultMarker, defaultMarker, 
             defaultMarker, defaultMarker, defaultMarker];
+        
+        const buttons = document.getElementById('buttonContainer').querySelectorAll('button');
+        buttons.forEach(button => {
+            button.textContent = " ";
+        });
     }
 
-    return {getBoard, placeMarker, checkWin, resetBoard, defaultMarker};
-})();
-
-function createPlayer (name, marker){
-     return {name, marker};
-};
-
-const gameController = (() => {
-    let player1 = createPlayer("Cheeze", "X");
-    let player2 = createPlayer("Crackers", "O");
-
-    let winCondition = "";
-    while (winCondition === ""){
-        console.log(gameBoard.getBoard());
-        let input = prompt("Where do you wanna put the X marker? ");
-        let result = gameBoard.placeMarker(player1.marker, input);
-        if (gameBoard.checkWin() != gameBoard.defaultMarker){
-            winCondition = gameBoard.checkWin();
-            break;
-        }
-        console.log(gameBoard.getBoard());
-
-        let input2 = prompt("Where do you wanna put the O marker? ");
-        let result2 =gameBoard.placeMarker(player2.marker, input2);
-        if (gameBoard.checkWin() != gameBoard.defaultMarker){
-            winCondition = gameBoard.checkWin();
-            break;
+    const gameController = (turn, position) => {
+        if (gameBoard.placeMarker(turn, position)){
+            if (gameBoard.checkWin(turn)){
+                something = document.getElementById("displayBoard").textContent = `Player ${turn} has won!`;
+            }else{
+                if (gameBoard.checkTie()){
+                    something = document.getElementById("displayBoard").textContent = `It's a draw!`;
+                }
+            };
         }
     }
-    
-    console.log(gameBoard.getBoard());
 
-    if (winCondition === player1.marker){
-        console.log(player1.name + " is the winner!");
-    }else if (winCondition === player2.marker){
-        console.log(player2.name + " is the winner!");
-    }else{
-        console.log("It's a draw!");
-    }
+    return {placeMarker, checkWin, checkTie, resetBoard, defaultMarker, turn, gameController};
+
 })();
-
