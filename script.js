@@ -8,29 +8,50 @@ const gameBoard = (() => {
                 defaultMarker, defaultMarker, defaultMarker, 
                 defaultMarker, defaultMarker, defaultMarker];
 
-    const inputfield = document.getElementById("playerX");
-    const inputfield2 = document.getElementById("playerO");
-
-    let player1 = createPlayer(inputfield.value, "X");
-    let player2 = createPlayer(inputfield2.value,"O");
+    let player1 = createPlayer("playerX", "X");
+    let player2 = createPlayer("playerO","O");
 
     let turn = player1;
 
-    const playboard = document.getElementById("board");
-    playboard.addEventListener("click", (event) => {
+    function handleClick(event){
         if (event.target.tagName === "BUTTON"){
             const position = event.target.id;
             gameBoard.gameController(turn.marker, position);
         }
-    });
+    }
 
+    const playboard = document.getElementById("board");
+    playboard.addEventListener("click", handleClick);
+
+    //Resets the board
+    const resetBoard = () => {
+        board = [defaultMarker, defaultMarker, defaultMarker, 
+            defaultMarker, defaultMarker, defaultMarker, 
+            defaultMarker, defaultMarker, defaultMarker];
+        
+        const buttons = document.getElementById('board').querySelectorAll('button');
+        buttons.forEach((button) => {
+            button.textContent = " ";
+        });
+        
+        turn = player1;
+
+        playboard.addEventListener("click", handleClick);
+        document.getElementById("displayBoard").textContent = `It's Player ${player1.marker}'s turn`;
+    }
+
+
+    const boardReset = document.getElementById("reset");
+    boardReset.addEventListener("click", resetBoard);
+
+    //Places a marker on the board.
     const placeMarker = (marker,position) => {
         if (position >= 0 && position <= 8 && board[position] === defaultMarker) {
             
             board[position] = marker;
             const button= document.getElementById(position);
             button.textContent = marker;
-            
+
             if (turn === player1){
                 turn = player2;
             }else{
@@ -43,7 +64,7 @@ const gameBoard = (() => {
         }
     }
 
-    //Checks if we can end the game. Wether we have a winner or if the board is full.
+    //Checks if a player has won.
     const checkWin = (currentMarker) =>{
         let symbol;
         if ((board[0] === board[1] && board[0] === board[2] && board[0] === currentMarker) || 
@@ -62,6 +83,7 @@ const gameBoard = (() => {
         return symbol;
     }
 
+    //Checks if the game is a draw
     const checkTie = () => {
         let tie = true;
         for (let i = 0; i < board.length; i++){
@@ -72,26 +94,29 @@ const gameBoard = (() => {
         return tie;
     }
 
-    const resetBoard = () => {
-        board = [defaultMarker, defaultMarker, defaultMarker, 
-            defaultMarker, defaultMarker, defaultMarker, 
-            defaultMarker, defaultMarker, defaultMarker];
-        
-        const buttons = document.getElementById('buttonContainer').querySelectorAll('button');
-        buttons.forEach(button => {
-            button.textContent = " ";
-        });
-    }
-
+    //Controls the order of the game.
     const gameController = (turn, position) => {
         if (gameBoard.placeMarker(turn, position)){
             if (gameBoard.checkWin(turn)){
-                something = document.getElementById("displayBoard").textContent = `Player ${turn} has won!`;
+                something = document.getElementById("displayBoard")
+                .textContent = `Player ${turn} has won!`;
+                const bing = document.getElementById("board");
+                bing.removeEventListener("click", handleClick, false);
+
             }else{
                 if (gameBoard.checkTie()){
                     something = document.getElementById("displayBoard").textContent = `It's a draw!`;
+                    const bing = document.getElementById("board");
+                    bing.removeEventListener("click", handleClick, false);
+                }else {
+                    if (turn === player1.marker){
+                        document.getElementById("displayBoard").textContent = `It's Player ${player2.marker}'s turn`;
+                    }else{
+                        document.getElementById("displayBoard").textContent = `It's Player ${player1.marker}'s turn`;
+                    }
                 }
-            };
+            }
+
         }
     }
 
